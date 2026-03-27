@@ -30,8 +30,7 @@ namespace llaisys {
 
         ~Tensor() = default;
 
-        // Info
-        std::byte *data();
+        std::byte *data(); // 返回当前 Tensor 的底层数据起始地址
 
         const std::byte *data() const;
 
@@ -54,7 +53,7 @@ namespace llaisys {
 
         void debug() const;
 
-        bool isContiguous() const;
+        bool isContiguous() const; // 判断当前张量在内存上是不是连续的
 
         // Meta Transform
         tensor_t permute(const std::vector<size_t> &order) const;
