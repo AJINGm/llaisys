@@ -56,11 +56,11 @@ namespace llaisys {
         bool isContiguous() const; // 判断当前张量在内存上是不是连续的
 
         // Meta Transform
-        tensor_t permute(const std::vector<size_t> &order) const;
+        tensor_t permute(const std::vector<size_t> &order) const; // 按指定顺序重排返回一个“新视图”(不移动数据)
 
-        tensor_t slice(size_t dim, size_t start, size_t end) const;
+        tensor_t slice(size_t dim, size_t start, size_t end) const; // 沿给定维度进行切片
 
-        tensor_t view(const std::vector<size_t> &shape) const;
+        tensor_t view(const std::vector<size_t> &shape) const; // 在不拷贝数据的情况下，重新定义这块内存的多维解释方式
 
 
         void load(const void *src); // 把主存数据加载到Tensor中

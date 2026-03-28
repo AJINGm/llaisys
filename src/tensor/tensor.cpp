@@ -183,18 +183,78 @@ namespace llaisys {
     }
 
     tensor_t Tensor::permute(const std::vector<size_t> &order) const {
-        TO_BE_IMPLEMENTED();
-        return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        if (this->deviceType() == LLAISYS_DEVICE_CPU) {
+            CHECK_ARGUMENT(order.size() == this->ndim(),
+                           "Tensor::permute: order size must match tensor ndim.");
+
+            std::vector<bool> used(this->ndim(), false);
+            for (size_t dim: order) {
+                CHECK_ARGUMENT(dim < this->ndim(),
+                               "Tensor::permute: dimension out of range.");
+                CHECK_ARGUMENT(!used[dim],
+                               "Tensor::permute: duplicated dimension in order.");
+                used[dim] = true;
+            }
+
+            std::vector<size_t> new_shape(order.size());
+            std::vector<ptrdiff_t> new_strides(order.size());
+
+            for (size_t i = 0; i < order.size(); ++i) {
+                new_shape[i] = this->shape()[order[i]];
+                new_strides[i] = this->strides()[order[i]];
+            }
+
+            TensorMeta new_meta{this->dtype(), new_shape, new_strides};
+            return std::shared_ptr<Tensor>(new Tensor(new_meta, _storage, _offset));
+        } else {
+            TO_BE_IMPLEMENTED();
+            return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        }
     }
 
     tensor_t Tensor::view(const std::vector<size_t> &shape) const {
-        TO_BE_IMPLEMENTED();
-        return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        if (this->deviceType() == LLAISYS_DEVICE_CPU) {
+            size_t new_numel = 1;
+            for (const size_t &dim: shape) new_numel *= dim; // 计算新张量元素总数
+
+            CHECK_ARGUMENT(new_numel == this->numel(),
+                           "Tensor::view: new shape must have the same number of elements.");
+            CHECK_ARGUMENT(this->isContiguous(),
+                           "Tensor::view: only contiguous tensors are supported for now.");
+
+            std::vector<ptrdiff_t> new_strides(shape.size());
+            ptrdiff_t stride = 1;
+            for (size_t i = shape.size(); i > 0; --i) {
+                size_t index = i - 1;
+                new_strides[index] = stride;
+                stride *= static_cast<ptrdiff_t>(shape[index]);
+            }
+            TensorMeta new_meta{this->dtype(), shape, new_strides};
+            return std::shared_ptr<Tensor>(new Tensor(new_meta, _storage, _offset));
+        } else {
+            TO_BE_IMPLEMENTED();
+            return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        }
     }
 
     tensor_t Tensor::slice(size_t dim, size_t start, size_t end) const {
-        TO_BE_IMPLEMENTED();
-        return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        if (this->deviceType() == LLAISYS_DEVICE_CPU) {
+            CHECK_ARGUMENT(dim < this->ndim(), "Tensor:: slice dim out of range.");
+            CHECK_ARGUMENT(start <= end, "Tensor::slice: start must be <= end.");
+            CHECK_ARGUMENT(end <= this->shape()[dim], "Tensor::slice: end out of range.");
+
+            std::vector<size_t> new_shape = this->shape();
+            std::vector<ptrdiff_t> new_strides = this->strides();
+            new_shape[dim] = end - start;
+
+            size_t new_offset = _offset + start * this->strides()[dim] * this->elementSize();
+            TensorMeta new_meta{this->dtype(), new_shape, new_strides};
+
+            return std::shared_ptr<Tensor>(new Tensor(new_meta, _storage, new_offset));
+        } else {
+            TO_BE_IMPLEMENTED();
+            return std::shared_ptr<Tensor>(new Tensor(_meta, _storage));
+        }
     }
 
     void Tensor::load(const void *src_) {
