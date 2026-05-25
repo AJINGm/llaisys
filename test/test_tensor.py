@@ -40,8 +40,10 @@ def test_tensor():
 
     # Test slice
     print("===Test slice===")
-    torch_tensor_slice = torch_tensor[:, :, 1:4]
-    llaisys_tensor_slice = llaisys_tensor.slice(2, 1, 4)
+    # torch_tensor_slice = torch_tensor[:, :, 1:4]
+    # llaisys_tensor_slice = llaisys_tensor.slice(2, 1, 4)
+    torch_tensor_slice = torch_tensor[:, 2:4, :]
+    llaisys_tensor_slice = llaisys_tensor.slice(1, 2, 4)
     llaisys_tensor_slice.debug()
     assert llaisys_tensor_slice.shape() == torch_tensor_slice.shape
     assert llaisys_tensor_slice.strides() == torch_tensor_slice.stride()
